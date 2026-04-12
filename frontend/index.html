@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crop Yield Predictor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(to right, #56ab2f, #a8e063);
+            text-align: center;
+            color: white;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        input {
+            display: block;
+            margin: 10px auto;
+            padding: 12px;
+            width: 250px;
+            border-radius: 6px;
+            border: none;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: white;
+            color: #2e7d32;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+
+        canvas {
+            margin-top: 30px;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🌾 Crop Yield Prediction System</h1>
+
+    <input id="rainfall" placeholder="Rainfall (mm)">
+    <input id="temperature" placeholder="Temperature (°C)">
+    <input id="nitrogen" placeholder="Nitrogen">
+    <input id="phosphorus" placeholder="Phosphorus">
+    <input id="potassium" placeholder="Potassium">
+
+    <button onclick="predict()">Predict Yield</button>
+
+    <div id="result"></div>
+
+    <canvas id="chart" width="400" height="200"></canvas>
+</div>
+
+<script>
+let chart;
+
+function predict() {
+    const data = {
+        rainfall: document.getElementById("rainfall").value,
+        temperature: document.getElementById("temperature").value,
+        nitrogen: document.getElementById("nitrogen").value,
+        phosphorus: document.getElementById("phosphorus").value,
+        potassium: document.getElementById("potassium").value
+    };
+
+    fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("result").innerHTML = `
+            <h2>🌱 Prediction Results</h2>
+            <p>🌲 Random Forest: ${data.random_forest}</p>
+            <p>🧠 LSTM: ${data.lstm}</p>
+            <p><b>🔀 Hybrid Model: ${data.hybrid}</b></p>
+        `;
+
+        // Draw chart
+        const ctx = document.getElementById('chart').getContext('2d');
+
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Random Forest', 'LSTM', 'Hybrid'],
+                datasets: [{
+                    label: 'Yield Prediction',
+                    data: [data.random_forest, data.lstm, data.hybrid]
+                }]
+            }
+        });
+    });
+}
+</script>
+
+</body>
+</html>
